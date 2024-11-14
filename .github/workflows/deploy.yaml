@@ -21,22 +21,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Instalar o humctl CLI
-      - name: Install humctl
-        run: |
-          echo "Baixando humctl..."
-          curl -fLO https://github.com/humanitec/cli/releases/download/v0.33.0/cli_0.33.0_linux_amd64.tar.gz
-          tar xvzf cli_0.33.0_linux_amd64.tar.gz
-          sudo install -o root -g root -m 0755 humctl /usr/local/bin/humctl
-          rm cli_0.33.0_linux_amd64.tar.gz README.md
-          humctl version
-
-      # Step 3: Inicializar o Terraform
+      # Step 2: Inicializar o Terraform
       - name: Initialize Terraform
         working-directory: ./terraform
         run: terraform init
 
-      # Step 4: Aplicar o Terraform com variáveis
+      # Step 3: Aplicar o Terraform com variáveis
       - name: Apply Terraform
         working-directory: ./terraform
         run: |
