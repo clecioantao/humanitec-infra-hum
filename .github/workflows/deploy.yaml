@@ -39,10 +39,12 @@ jobs:
           sudo install -o root -g root -m 0755 humctl /usr/local/bin/humctl
           humctl version
 
-      # Step 4: Configurar autenticação no Humanitec
+      # Step 4: Configurar autenticação usando variável de ambiente
       - name: Set up Humanitec Token
         run: |
-          humctl config set token ${{ secrets.HUMANITEC_API_TOKEN }}
+          echo "Configurando Humanitec token..."
+          echo "HUMANITEC_TOKEN=${{ secrets.HUMANITEC_TOKEN }}"
+          humctl config set token "${{ secrets.HUMANITEC_TOKEN }}"
           humctl config view
 
       # Step 5: Inicializar o Terraform
