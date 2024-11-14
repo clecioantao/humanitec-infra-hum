@@ -3,11 +3,19 @@ resource "azurerm_resource_group" "rg" {
   location = var.location
 }
 
+resource "azurerm_container_registry" "acr" {
+  name                = var.acr_name
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  sku                 = "Basic"
+  admin_enabled       = true
+}
+
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = var.aks_cluster_name
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  dns_prefix          = "humanitec-aks"  # Defina o prefixo DNS aqui
+  dns_prefix          = "humanitec-poc"
 
   default_node_pool {
     name       = "default"
@@ -19,6 +27,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
   identity {
     type = "SystemAssigned"
   }
+
+  depends_on = [azurerm_container_registry.acr]
 }
 
 resource "azurerm_storage_account" "storage" {
@@ -33,10 +43,6 @@ resource "azurerm_storage_container" "container" {
   name                  = "test-container"
   storage_account_name  = azurerm_storage_account.storage.name
   container_access_type = "private"
-}
-
-output "aks_cluster_name" {
-  value = azurerm_kubernetes_cluster.aks.name
 }
 
 output "storage_account_name" {
