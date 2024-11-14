@@ -31,19 +31,17 @@ jobs:
           rm cli_0.33.0_linux_amd64.tar.gz README.md
           humctl version
 
-      # Step 3: Configurar autenticação usando variável de ambiente
-      - name: Set up Humanitec Token
-        run: |
-          export HUMANITEC_TOKEN=${{ secrets.HUMANITEC_TOKEN }}
-          humctl config set token $HUMANITEC_TOKEN
-          humctl config view # Verificar configuração
-
-      # Step 4: Inicializar o Terraform
+      # Step 3: Inicializar o Terraform
       - name: Initialize Terraform
         working-directory: ./terraform
         run: terraform init
 
-      # Step 5: Aplicar o Terraform
+      # Step 4: Aplicar o Terraform com variáveis
       - name: Apply Terraform
         working-directory: ./terraform
-        run: terraform apply -auto-approve
+        run: |
+          terraform apply -auto-approve \
+            -var "client_id=$HUM_CLIENT_ID" \
+            -var "client_secret=$HUM_CLIENT_SECRET" \
+            -var "subscription_id=$HUM_SUBSCRIPTION_ID" \
+            -var "tenant_id=$HUM_TENANT_ID"
