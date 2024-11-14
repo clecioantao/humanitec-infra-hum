@@ -42,8 +42,7 @@ jobs:
       # Step 4: Configurar autenticação no Humanitec
       - name: Set up Humanitec Token
         run: |
-          export HUMANITEC_TOKEN=${{ secrets.HUMANITEC_API_TOKEN }}
-          humctl config set token $HUMANITEC_TOKEN
+          humctl config set token ${{ secrets.HUMANITEC_API_TOKEN }}
           humctl config view
 
       # Step 5: Inicializar o Terraform
