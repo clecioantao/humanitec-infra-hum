@@ -1,4 +1,4 @@
-name: Provision Infrastructure with Terraform
+name: Provision Infrastructure with Humanitec and Terraform
 
 on:
   push:
@@ -14,38 +14,68 @@ jobs:
       HUM_CLIENT_SECRET: ${{ secrets.HUM_CLIENT_SECRET }}
       HUM_SUBSCRIPTION_ID: ${{ secrets.HUM_SUBSCRIPTION_ID }}
       HUM_TENANT_ID: ${{ secrets.HUM_TENANT_ID }}
-      HUMANITEC_TOKEN: ${{ secrets.HUMANITEC_TOKEN }}
+      HUMANITEC_API_TOKEN: ${{ secrets.HUMANITEC_API_TOKEN }}
 
     steps:
       # Step 1: Checkout do código
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Configurar autenticação usando o token Humanitec
-      - name: Set up Humanitec Token
+      # Step 2: Instalar o Terraform CLI
+      - name: Install Terraform CLI
         run: |
-          export HUMANITEC_TOKEN=${{ secrets.HUMANITEC_TOKEN }}
-          humctl config set token $HUMANITEC_TOKEN
-
-      # Step 3: Instalar o Terraform
-      - name: Install Terraform
-        run: |
-          sudo apt-get update && sudo apt-get install -y unzip
-          curl -LO https://releases.hashicorp.com/terraform/1.5.6/terraform_1.5.6_linux_amd64.zip
-          unzip terraform_1.5.6_linux_amd64.zip
-          sudo mv terraform /usr/local/bin/
+          sudo apt-get update && sudo apt-get install -y curl unzip
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+          sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+          sudo apt-get update && sudo apt-get install terraform
           terraform -version
 
-      # Step 4: Inicializar o Terraform
-      - name: Terraform Init
-        working-directory: ./terraform
-        run: terraform init
+      # Step 3: Instalar o humctl CLI
+      - name: Install humctl CLI
+        run: |
+          echo "Baixando humctl..."
+          curl -fLO https://github.com/humanitec/cli/releases/download/v0.33.0/cli_0.33.0_linux_amd64.tar.gz
+          tar xvzf cli_0.33.0_linux_amd64.tar.gz
+          sudo install -o root -g root -m 0755 humctl /usr/local/bin/humctl
+          humctl version
 
-      # Step 5: Executar o Terraform Apply
-      - name: Terraform Apply
+      # Step 4: Configurar autenticação usando variável de ambiente
+      - name: Set up Humanitec Token
+        run: |
+          echo "Configurando Humanitec token..."
+          echo "HUMANITEC_TOKEN=${{ secrets.HUMANITEC_TOKEN }}"
+          humctl config set token "${{ secrets.HUMANITEC_TOKEN }}"
+          humctl config view
+
+      # Step 5: Inicializar o Terraform
+      - name: Initialize Terraform
         working-directory: ./terraform
-        run: terraform apply -auto-approve \
-          -var "client_id=$HUM_CLIENT_ID" \
-          -var "client_secret=$HUM_CLIENT_SECRET" \
-          -var "subscription_id=$HUM_SUBSCRIPTION_ID" \
-          -var "tenant_id=$HUM_TENANT_ID"
+        run: |
+          terraform init
+
+      # Step 6: Executar o Terraform Apply
+      - name: Apply Terraform
+        working-directory: ./terraform
+        run: |
+          terraform apply -auto-approve \
+            -var "client_id=$HUM_CLIENT_ID" \
+            -var "client_secret=$HUM_CLIENT_SECRET" \
+            -var "subscription_id=$HUM_SUBSCRIPTION_ID" \
+            -var "tenant_id=$HUM_TENANT_ID"
+
+      # Step 7: Validar o arquivo Score antes do deploy
+      - name: Validate Score file
+        env:
+          HUMANITEC_ORG: labcle
+          HUMANITEC_APP: infra-hum
+          HUMANITEC_ENV: development
+        run: humctl score validate --org $HUMANITEC_ORG --app $HUMANITEC_APP --env $HUMANITEC_ENV
+
+      # Step 8: Realizar o deploy usando Humanitec
+      - name: Deploy using Humanitec
+        env:
+          HUMANITEC_ORG: labcle
+          HUMANITEC_APP: infra-hum
+          HUMANITEC_ENV: development
+        run: |
+          humctl score deploy --wait --org $HUMANITEC_ORG --app $HUMANITEC_APP --env $HUMANITEC_ENV
