@@ -17,16 +17,33 @@ jobs:
       HUMANITEC_TOKEN: ${{ secrets.HUMANITEC_TOKEN }}
 
     steps:
+      # Step 1: Checkout do código
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Humanitec Login
-        run: humctl login --token ${{ secrets.HUMANITEC_TOKEN }}
+      # Step 2: Instalar o humctl CLI
+      - name: Install humctl
+        run: |
+          echo "Baixando humctl..."
+          curl -fLO https://github.com/humanitec/cli/releases/download/v0.33.0/cli_0.33.0_linux_amd64.tar.gz
+          tar xvzf cli_0.33.0_linux_amd64.tar.gz
+          sudo install -o root -g root -m 0755 humctl /usr/local/bin/humctl
+          rm cli_0.33.0_linux_amd64.tar.gz README.md
+          humctl version
 
+      # Step 3: Configurar autenticação usando variável de ambiente
+      - name: Set up Humanitec Token
+        run: |
+          export HUMANITEC_TOKEN=${{ secrets.HUMANITEC_TOKEN }}
+          humctl config set token $HUMANITEC_TOKEN
+          humctl config view # Verificar configuração
+
+      # Step 4: Inicializar o Terraform
       - name: Initialize Terraform
         working-directory: ./terraform
         run: terraform init
 
+      # Step 5: Aplicar o Terraform
       - name: Apply Terraform
         working-directory: ./terraform
         run: terraform apply -auto-approve
