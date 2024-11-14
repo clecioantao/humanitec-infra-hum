@@ -17,27 +17,32 @@ jobs:
       HUMANITEC_API_TOKEN: ${{ secrets.HUMANITEC_API_TOKEN }}
 
     steps:
+      # Step 1: Checkout do código
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Terraform
-        run: |
-          sudo apt-get update && sudo apt-get install -y terraform
-
+      # Step 2: Instalar o humctl CLI
       - name: Install humctl CLI
         run: |
+          echo "Baixando humctl..."
           curl -fLO https://github.com/humanitec/cli/releases/download/v0.33.0/cli_0.33.0_linux_amd64.tar.gz
           tar xvzf cli_0.33.0_linux_amd64.tar.gz
           sudo install -o root -g root -m 0755 humctl /usr/local/bin/humctl
 
+      # Step 3: Login no Humanitec
       - name: Login to Humanitec
         run: humctl login --token ${{ secrets.HUMANITEC_API_TOKEN }}
 
+      # Step 4: Inicializar o Terraform
       - name: Initialize Terraform
         working-directory: ./terraform
-        run: |
-          terraform init
+        run: terraform init
 
+      # Step 5: Aplicar o Terraform
       - name: Apply Terraform
         working-directory: ./terraform
-        run: terraform apply -auto-approve -var "client_id=${{ secrets.HUM_CLIENT_ID }}" -var "client_secret=${{ secrets.HUM_CLIENT_SECRET }}" -var "subscription_id=${{ secrets.HUM_SUBSCRIPTION_ID }}" -var "tenant_id=${{ secrets.HUM_TENANT_ID }}"
+        run: terraform apply -auto-approve \
+          -var "client_id=${{ secrets.HUM_CLIENT_ID }}" \
+          -var "client_secret=${{ secrets.HUM_CLIENT_SECRET }}" \
+          -var "subscription_id=${{ secrets.HUM_SUBSCRIPTION_ID }}" \
+          -var "tenant_id=${{ secrets.HUM_TENANT_ID }}"
