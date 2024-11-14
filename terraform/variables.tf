@@ -1,16 +1,39 @@
-variable "client_id" {}
-variable "client_secret" {}
-variable "subscription_id" {}
-variable "tenant_id" {}
+# Variáveis de Autenticação para Azure
+variable "HUM_CLIENT_ID" {
+  description = "Azure Client ID para o provisionamento via Humanitec"
+  type        = string
+}
 
+variable "HUM_CLIENT_SECRET" {
+  description = "Azure Client Secret para o provisionamento via Humanitec"
+  type        = string
+}
+
+variable "HUM_SUBSCRIPTION_ID" {
+  description = "Azure Subscription ID para o provisionamento via Humanitec"
+  type        = string
+}
+
+variable "HUM_TENANT_ID" {
+  description = "Azure Tenant ID para o provisionamento via Humanitec"
+  type        = string
+}
+
+# Variáveis de Configuração de Recursos
 variable "resource_group" {
-  default = "humanitec-rg"
+  description = "Nome do Resource Group"
+  type        = string
+  default     = "humanitec-rg-infra"
 }
 
 variable "location" {
-  default = "northeurope"
+  description = "Localização para provisionar os recursos no Azure"
+  type        = string
+  default     = "eastus"
 }
 
-variable "storage_account_name" {
-  default = "humanitecstorageacct"
+variable "aks_cluster_name" {
+  description = "Nome do AKS Cluster"
+  type        = string
+  default     = "humanitec-aks-infra"
 }

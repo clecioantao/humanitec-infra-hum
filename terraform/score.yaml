@@ -1,0 +1,18 @@
+apiVersion: humanitec.io/v1
+metadata:
+  name: infra-provision
+spec:
+  resources:
+    - external:
+        id: azure-cluster
+        type: azure-kubernetes-cluster
+        inputs:
+          resource_group: "humanitec-rg"
+          cluster_name: "humanitec-aks"
+          location: "eastus"
+  deployment:
+    containers:
+      - name: flask-app
+        image: "${images.flask-app}"
+        variables:
+          PORT: "8080"
