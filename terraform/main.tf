@@ -45,6 +45,3 @@ resource "azurerm_storage_container" "container" {
   container_access_type = "private"
 }
 
-output "container_endpoint" {
-  value = azurerm_storage_account.storage.primary_blob_endpoint
-}
