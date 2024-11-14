@@ -7,12 +7,21 @@ spec:
         id: azure-cluster
         type: azure-kubernetes-cluster
         inputs:
-          resource_group: "humanitec-rg"
-          cluster_name: "humanitec-aks"
+          resource_group: "humanitec-rg-infra"
+          cluster_name: "humanitec-aks-infra"
           location: "eastus"
+    - external:
+        id: azure-registry
+        type: azure-container-registry
+        inputs:
+          registry_name: "humanitecacr"
+          resource_group: "humanitec-rg-infra"
   deployment:
     containers:
       - name: flask-app
         image: "${images.flask-app}"
-        variables:
-          PORT: "8080"
+        env:
+          DATABASE_URL: "https://${resources.azure-storage-account.container_endpoint}"
+        ports:
+          - name: http
+            port: 8080
